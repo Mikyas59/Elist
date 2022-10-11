@@ -1,0 +1,14 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(usethis)
+library(tidyverse)
+
+use_github(protocol="https", auth_token = Sys.getenv("GITHUB_PAT"))
+```
+
