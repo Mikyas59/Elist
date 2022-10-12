@@ -8,7 +8,140 @@ output: html_notebook
 ```{r}
 library(usethis)
 library(tidyverse)
+library(psych)
 
 use_github(protocol="https", auth_token = Sys.getenv("GITHUB_PAT"))
 ```
+```{r import data sets}
+BC19 <- read.csv("~/R/Elist/Leading+with+Intent+-+2019+Board+Chair+Survey_October+11,+2022_12.58/Leading with Intent - 2019 Board Chair Survey_October 11, 2022_12.58.csv")
+
+CEO19 <- read.csv("~/R/Elist/Leading+with+Intent+-+2019+Chief+Executive+Survey_October+11,+2022_12.52/Leading with Intent - 2019 Chief Executive Survey_October 11, 2022_12.52.csv")
+
+
+```
+```{r}
+##only keep variables I am interested in. Org name, first name, last name and email of taker and corresponding BC/ED. 
+##Board chair version  
+
+BC19 <- BC19%>%
+  select(,18:28)
+
+BC19 <- BC19 %>% 
+  rename(BC_First_name = Q3_1...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....First.name)%>%
+  rename(BC_Last_name = Q3_2...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....Last.name)%>%
+  rename(BC_email = Q3_3...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....Email.address)%>%
+  rename(CEO_First_name = Q4_1...Leading.with.Intent.includes.a.board.chair.version.and.a.chief.executive.executive.director.version.of.the.survey..Please.provide.current.contact.information.the.chief.executive.executive.director.of.the.organization.where.you.serve.as.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Chief.executive...first.name)%>%
+  rename(CEO_Last_name = Q4_2...Leading.with.Intent.includes.a.board.chair.version.and.a.chief.executive.executive.director.version.of.the.survey..Please.provide.current.contact.information.the.chief.executive.executive.director.of.the.organization.where.you.serve.as.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Chief.executive...last.name)%>%
+  rename(CEO_email = Q4_3...Leading.with.Intent.includes.a.board.chair.version.and.a.chief.executive.executive.director.version.of.the.survey..Please.provide.current.contact.information.the.chief.executive.executive.director.of.the.organization.where.you.serve.as.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Chief.executive...email.address)%>%
+  rename(role=Q5...Your.Role.in.the.Organization...Please.note.that.only.board.chairs.should.complete.this.survey..as.we.will.be.asking.questions.specific.to.your.partnership.with.the.chief.executive...For.chief.executives..please.use.this.link.to.access.your.survey..For.all.other.roles..you.will.be.taken.to.the.end.of.the.survey......What.is.your.personal.role.in.this.organization.)%>%
+  rename(Org_name = Q7_1...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Organization.Name)%>%
+  rename(Org_state = Q7_2...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....State.Province)%>%
+  rename(Org_ZIP = Q7_3...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Postal.zip.code)%>%
+  rename(Org_Country = Q7_4...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Country)
+  
+```
+
+
+```{r}
+##Remove and rename variables for CEO version 
+CEO19 <- CEO19%>%
+  select(,18:28)
+
+
+CEO19 <- CEO19 %>% 
+  rename(CEO_First_name = Q3_1...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....First.name)%>%
+  rename(CEO_Last_name = Q3_2...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....Last.name)%>%
+  rename(CEO_email = Q3_3...Please.provide.your.name.and.email.address..This.will.not.be.given.out.to.others..and.will.only.be.used.to.contact.you.in.the.event.there.is.a.problem.with.the.survey..and.to.send.you.your.free.BoardSource.publication.PDF....Email.address)%>%
+  rename(BC_First_name = Q4_1...Leading.with.Intent.includes.a.chief.executive.executive.director.version.and.a.board.chair.version.of.the.survey..Please.provide.current.contact.information.for.your.board.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Board.chair...first.name)%>%
+  rename(BC_Last_name = Q4_2...Leading.with.Intent.includes.a.chief.executive.executive.director.version.and.a.board.chair.version.of.the.survey..Please.provide.current.contact.information.for.your.board.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Board.chair...last.name)%>%
+  rename(BC_email = Q4_3...Leading.with.Intent.includes.a.chief.executive.executive.director.version.and.a.board.chair.version.of.the.survey..Please.provide.current.contact.information.for.your.board.chair.so.we.can.reach.out.to.him.or.her..Information.provided.will.only.be.used.to.conduct.this.study....Board.chair...email.address)%>%
+  rename(role=Q5...Your.Role.in.the.Organization...Please.note.that.only.chief.executives.executive.directors.should.complete.this.survey..as.we.will.be.asking.questions.specific.to.your.relationship.with.your.board...For.board.chairs..please.use.this.link.to.access.your.survey..For.all.other.roles..you.will.be.taken.to.the.end.of.the.survey......What.is.your.personal.role.in.this.organization.)%>%
+  rename(Org_name = Q7_1...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Organization.Name)%>%
+  rename(Org_state = Q7_2...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....State.Province)%>%
+  rename(Org_ZIP = Q7_3...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Postal.zip.code)%>%
+  rename(Org_Country = Q7_4...What.is.your.organization.s.name.and.location...If.your.organization.has.multiple.locations..please.list.the.headquarters.or.main.office.....Country)
+
+```
+
+```{r}
+##Check to see only board chairs and executives took the survey. 
+
+table(CEO19$role)
+
+table(BC19$role)
+
+##check for distinct email address of takers. 
+
+duplicated(CEO19$CEO_email)
+
+##Remove survey attempts with the same email address for the CEO version. 
+CEO19_1<- CEO19%>%
+  filter(duplicated(CEO19$CEO_email) == FALSE)
+
+##Remove survey attempts with the same email address for the BC version. 
+duplicated(BC19$BC_email)
+
+BC19_1<- BC19%>%
+  filter(duplicated(BC19$BC_email) == FALSE)
+
+##check to see if BC emails are duplicated by CEOs or vise versa. May indicate co-chairs/CO-CEOs taking survey from the same organization. 
+duplicated(CEO19_1$BC_email) ##two duplicates. not a big issue. 
+
+duplicated(BC19_1$CEO_email) ##two duplicates here as well. Ignored for now. 
+
+```
+
+
+```{r}
+##inner join by ceo email and bc email. To see if BC and CEO from the same org completed the survey. 
+
+table1<- semi_join(CEO19_1, BC19_1, by="CEO_email")  ##99 CEOs whose board chair/co-chair also completed the survey. 
+
+table2<- semi_join(BC19_1, CEO19_1, by="BC_email")   ##111 board chairs/co-chairs whose CEOs also completed the survey.
+
+##individuals where only the CEO or board chair took the survey. 
+table3<- anti_join(CEO19_1, BC19_1, by="CEO_email") #CEOs where the BC did not complete the survey.  
+##indicate who took the survey. in this case, CEOs. 
+table3<- table3%>%
+  mutate(takers="CEO")
+
+table4<- anti_join(BC19_1, CEO19_1, by= "BC_email")  ##BC where the CEO did not complete the survey. 
+##indicate BC took the survey. 
+table4<- table4%>%
+  mutate(takers="BC")
+
+###For CEOs whose BC didn't complete the survey or BC whose CEO did not take the survey, we can contact saying the CEO or BC took the survey in the past. 
+
+##For those where the CEO and BC took the survey, we can just say you took the survey in the past. 
+
+##there may be individuals in both lists of table1 and table 2. so use a semi-join. 
+table5<- semi_join(table1, table2, by="BC_email") ##CEOs who are in both table 1 and table 2. ##identify CEOs who are not in table 5
+
+##Maybe just merge tables 1 and 2 and remove duplicate ceo_emails. ##combines two-takers. 
+table6<- bind_rows(table1, table2)
+
+##table7 combines single takers. 
+table7 <- bind_rows(table3, table4)
+
+##Indicate how many takers in an eventually combined table. 
+table6 <- table6%>%
+  mutate(takers = "Two_takers")
+
+ 
+
+
+##Distinct CEOs where possibly multiple BC took the survey. 
+table_test <- table6%>%
+  group_by(CEO_Last_name)%>%
+  distinct(CEO_email, .keep_all = TRUE)
+
+##combine into final data frame.
+table_final1 <- bind_rows(table_test, table7)
+
+write_csv(table_final1, "Email_list.csv")
+
+##A number of entries with n/a, none, none yet, N/A, made up, just one letter, etc. 
+
+```
+
 
