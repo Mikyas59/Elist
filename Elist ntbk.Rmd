@@ -197,14 +197,20 @@ a3<- table_final2 %>%
 
 
 
-
-
 table_final3<- subset(table_final2, !(CEO_email== " " & BC_email == " "))
 
 
+a4<- table_final3%>%
+  filter(str_length(CEO_First_name)==1)
+
+##Final step. remove at@your business.com, double entry for kalamazoocan.org, 
+table_final3<- subset(table_final3, !(CEO_First_name=="S" | BC_Last_name == "of"))
+
+a5<- table_final3 %>%
+  filter(str_length(BC_First_name)==1)
 
 
-write_csv(table_final2, "Email_list_clean.csv")
+write_csv(table_final3, "Email_list_clean.csv")
 ```
 
 
