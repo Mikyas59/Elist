@@ -9,6 +9,7 @@ output: html_notebook
 library(usethis)
 library(tidyverse)
 library(psych)
+library(dplyr)
 
 use_github(protocol="https", auth_token = Sys.getenv("GITHUB_PAT"))
 ```
@@ -141,7 +142,69 @@ table_final1 <- bind_rows(table_test, table7)
 write_csv(table_final1, "Email_list.csv")
 
 ##A number of entries with n/a, none, none yet, N/A, made up, just one letter, etc. 
+##Remove illegitimate entries and one letter names. turn BC to N/A if board chair and CEO are same individual. 
 
+nonsense <- c("test", "Test", "n/a", "N/A", "none", "none yet", "None", "Board Chair", "s", "x", "J", "R","xx", "J", "M", "xxxx", "none of your business", "really")
+new<- c(" "," ", " "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," ")
+
+str_length(nonsense)
+
+table_final2 <- table_final1 
+
+##Delete BC email if board chair's last name is considered invalid. 
+table_final2$BC_email <- ifelse(table_final2$BC_Last_name %in% nonsense, " ", table_final2$BC_email)
+                                
+##Delete CEO email if CEO's last name is considered invalid. 
+table_final2$CEO_email <- ifelse(table_final2$CEO_Last_name %in% nonsense, " ", table_final2$CEO_email)
+
+##Delete names. 
+table_final2$BC_Last_name <- ifelse(table_final2$BC_Last_name %in% nonsense, " ", table_final2$BC_Last_name)
+table_final2$BC_First_name <- ifelse(table_final2$BC_First_name %in% nonsense, " ", table_final2$BC_First_name)
+
+table_final2$CEO_Last_name <- ifelse(table_final2$CEO_Last_name %in% nonsense, " ", table_final2$CEO_Last_name)
+
+table_final2$CEO_First_name <- ifelse(table_final2$CEO_First_name %in% nonsense, " ", table_final2$CEO_First_name)
+
+##correcting two names entered because the org has a co-leadership model. 
+table_final2[1099,1] <- "Kyleen"
+table_final2[1099,2] <- "Carplenter"
+
+table_final2[1379,1] <- "Carolyn"
+table_final2[1379,2]<- "Sheehan" 
+table_final2[1379,3] <- "CarolynSheehan@blackstoneacademy.org"
+table_final2[1379,12]<- "BC" 
+
+
+#If the CEO and the BC are the same person, keep the individual as only a CEO. 
+a<- table_final2%>%
+  filter(BC_email == CEO_email)
+a
+
+##Email and first name will be removed. Last name to be changed to 'Cheif exec'. 
+table_final2$BC_First_name <- ifelse(table_final2$BC_email == table_final2$CEO_email, " ", table_final2$BC_First_name)
+
+
+table_final2$BC_Last_name <- ifelse(table_final2$BC_email == table_final2$CEO_email, "Cheif exec", table_final2$BC_Last_name)
+
+
+table_final2$BC_email <- ifelse(table_final2$BC_email == table_final2$CEO_email, " ", table_final2$BC_email)
+
+
+##Next, delete rows with no ceo and BC emails as they are of no use. 
+
+a3<- table_final2 %>%
+  filter(CEO_email == " " & BC_email == " ")
+
+
+
+
+
+table_final3<- subset(table_final2, !(CEO_email== " " & BC_email == " "))
+
+
+
+
+write_csv(table_final2, "Email_list_clean.csv")
 ```
 
 
